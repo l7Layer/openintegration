@@ -334,8 +334,8 @@ describe("weekly time grid", () => {
     const slot = target.querySelector<HTMLElement>(".pp-cal-week-slot")!;
     expect(slot.dataset.start).toBe("600");
     expect(slot.dataset.end).toBe("690");
-    expect(slot.style.top).toBe("20%");
-    expect(slot.style.height).toBe("15%");
+    expect(slot.style.top).toBe("50%");
+    expect(slot.style.height).toBe("37.5%");
     expect(target.querySelector(".pp-cal-week-all-day")?.textContent).toContain("Holiday");
     expect(target.querySelectorAll(".pp-cal-week-slot")).toHaveLength(1);
   });

@@ -1019,8 +1019,8 @@ function renderWeek(
   const slots = settings.view === "rolling-week"
     ? events.map(item => weekSlot(item, settings)).filter((slot): slot is WeekSlot => slot !== null)
     : days.flatMap((day) => day.slots);
-  const startHour = Math.max(0, Math.floor(Math.min(8 * 60, ...slots.map((slot) => slot.start)) / 60));
-  const endHour = Math.min(24, Math.ceil(Math.max(18 * 60, ...slots.map((slot) => slot.end)) / 60));
+  const startHour = Math.max(0, Math.floor(Math.min(8 * 60, ...(slots.length ? slots.map((slot) => slot.start) : [8 * 60])) / 60));
+  const endHour = Math.min(24, Math.max(startHour + 1, Math.ceil(Math.max(...(slots.length ? slots.map((slot) => slot.end) : [18 * 60])) / 60)));
   const minutes = (endHour - startHour) * 60;
   const hasAllDay = days.some((day) => day.allDay.length);
   const hasHidden = days.some((day) => day.hidden);
@@ -1459,11 +1459,19 @@ function fitWeekGrid(target: HTMLElement): void {
         // Store the original proportional geometry so repeated fitting is idempotent.
         node.dataset.top ??= node.style.top;
         node.dataset.height ??= node.style.height;
-        const height = Math.min(grid.clientHeight, Math.max(minimumHeight,
-          parseFloat(node.dataset.height) / 100 * grid.clientHeight));
-        const start = Math.min(grid.clientHeight - height,
-          parseFloat(node.dataset.top) / 100 * grid.clientHeight);
-        return { item: node, start, end: start + height, lane: 0, lanes: 1 };
+        const originalStart = parseFloat(node.dataset.top) / 100 * grid.clientHeight;
+        const originalHeight = parseFloat(node.dataset.height) / 100 * grid.clientHeight;
+        const start = Math.max(0, Math.min(grid.clientHeight, originalStart));
+        const originalEnd = Math.min(grid.clientHeight, start + originalHeight);
+        const nextStart = nodes
+          .map((other) => parseFloat(other.dataset.top ?? other.style.top) / 100 * grid.clientHeight)
+          .filter((value) => value > originalStart)
+          .reduce((nearest, value) => Math.min(nearest, value), grid.clientHeight);
+        // A readability minimum may use free space, but must never extend a block
+        // across the next appointment or create a false overlap between lessons.
+        const availableEnd = nextStart >= originalEnd ? nextStart : originalEnd;
+        const end = Math.min(availableEnd, start + Math.max(minimumHeight, originalHeight));
+        return { item: node, start, end, lane: 0, lanes: 1 };
       });
       // The overlap algorithm only needs start/end/lane fields.
       const slots = positionWeekSlots(positioned);

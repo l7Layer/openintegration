@@ -316,6 +316,16 @@ describe("weekly time grid", () => {
     expect(target.querySelector(".pp-cal-column-weekday")?.textContent).toBe("Mo");
   });
 
+  it("fits the week time axis to the actual timetable", () => {
+    const target = render([
+      { title: "Last lesson", start: { dateTime: "2026-07-22T12:20:00+02:00" }, end: { dateTime: "2026-07-22T13:05:00+02:00" } }
+    ]);
+    const week = target.querySelector<HTMLElement>(".pp-cal-week")!;
+    expect(week.style.getPropertyValue("--pp-cal-hours")).toBe("6");
+    expect(target.querySelectorAll(".pp-cal-hour")).toHaveLength(7);
+    expect(render([]).querySelector<HTMLElement>(".pp-cal-week")!.style.getPropertyValue("--pp-cal-hours")).toBe("10");
+  });
+
   it("positions events in the display timezone and separates all-day entries", () => {
     const target = render([
       { title: "Meeting", start: { dateTime: "2026-07-22T08:00:00Z" }, end: { dateTime: "2026-07-22T09:30:00Z" } },
@@ -363,7 +373,7 @@ describe("weekly time grid", () => {
     Object.defineProperty(grid, "clientHeight", { value: 300, configurable: true });
     fitCalendarLayout(target);
     const slots = Array.from(target.querySelectorAll<HTMLElement>(".pp-cal-week-slot"));
-    expect(slots.map((slot) => slot.style.width)).toEqual(["50%", "50%"]);
+    expect(slots.map((slot) => slot.style.width)).toEqual(["100%", "100%"]);
     expect(slots.every((slot) => slot.classList.contains("is-compact"))).toBe(true);
     const geometry = slots.map((slot) => slot.getAttribute("style"));
     fitCalendarLayout(target);

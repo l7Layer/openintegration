@@ -47,7 +47,7 @@
     "dev": "npm run build && node dist/cli.js dev",
     "test": "npm run build && vitest run",
     "typecheck": "tsc --noEmit",
-    "prepack": "npm run build"
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@fontsource/open-sans": "5.2.7",

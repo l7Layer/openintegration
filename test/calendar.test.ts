@@ -353,6 +353,28 @@ describe("weekly time grid", () => {
     ]);
   });
 
+  it("keeps consecutive school lessons full width after pixel fitting", () => {
+    const event = (title: string, start: string, end: string) => ({
+      title,
+      start: { dateTime: `2026-07-22T${start}:00+02:00` },
+      end: { dateTime: `2026-07-22T${end}:00+02:00` }
+    });
+    const target = render([
+      event("Deutsch", "08:00", "08:45"),
+      event("Deutsch", "08:45", "09:30"),
+      event("Pause", "09:30", "09:50"),
+      event("Mathematik", "09:50", "10:35"),
+      event("GU", "10:35", "11:20")
+    ]);
+    const grid = target.querySelector<HTMLElement>(".pp-cal-week-grid")!;
+    Object.defineProperty(grid, "clientHeight", { value: 997, configurable: true });
+
+    fitCalendarLayout(target);
+
+    const slots = Array.from(target.querySelectorAll<HTMLElement>(".pp-cal-week-slot"));
+    expect(slots.map((slot) => slot.style.width)).toEqual(["100%", "100%", "100%", "100%", "100%"]);
+  });
+
   it("splits overnight events at local midnight without adding a day at an exclusive end", () => {
     const target = render([
       { title: "Night shift", start: { dateTime: "2026-07-22T23:00:00+02:00" }, end: { dateTime: "2026-07-23T02:00:00+02:00" } },

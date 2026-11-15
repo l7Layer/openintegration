@@ -971,19 +971,19 @@ function weekSlot(item: PreparedCalendarEvent, settings: CalendarDisplaySettings
   return { item, start, end: Math.min(1440, Math.max(start + 1, end)), lane: 0, lanes: 1 };
 }
 
-function positionWeekSlots<T extends { start: number; end: number; lane: number; lanes: number }>(slots: T[]): T[] {
+function positionWeekSlots<T extends { start: number; end: number; lane: number; lanes: number }>(slots: T[], tolerance = 0): T[] {
   const sorted = [...slots].sort((a, b) => a.start - b.start || b.end - a.end);
   let group: T[] = [];
   let ends: number[] = [];
   let groupEnd = -1;
   const finish = () => group.forEach((slot) => { slot.lanes = ends.length; });
   for (const slot of sorted) {
-    if (slot.start >= groupEnd) {
+    if (slot.start >= groupEnd - tolerance) {
       finish();
       group = [];
       ends = [];
     }
-    let lane = ends.findIndex((end) => end <= slot.start);
+    let lane = ends.findIndex((end) => end <= slot.start + tolerance);
     if (lane < 0) lane = ends.length;
     ends[lane] = slot.end;
     slot.lane = lane;
@@ -1474,7 +1474,7 @@ function fitWeekGrid(target: HTMLElement): void {
         return { item: node, start, end, lane: 0, lanes: 1 };
       });
       // The overlap algorithm only needs start/end/lane fields.
-      const slots = positionWeekSlots(positioned);
+      const slots = positionWeekSlots(positioned, 0.5);
       for (const slot of slots) {
         const node = slot.item;
         node.style.top = `${slot.start / grid.clientHeight * 100}%`;
